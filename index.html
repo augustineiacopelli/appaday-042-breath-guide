@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>042 &bull; Breath Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Inter:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0b0d17;
+    --deep:      #0e1020;
+    --orb-core:  #c8d8f8;
+    --orb-mid:   #6888d8;
+    --orb-outer: #2a3a7a;
+    --accent:    #8ba8e8;
+    --text:      #d8e4f8;
+    --muted:     #6070a8;
+    --phase-col: #a8c0f0;
+    --card-bg:   rgba(20,26,60,0.7);
+    --border:    rgba(100,130,220,0.15);
+  }
+
+  html, body {
+    min-height: 100dvh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .stars {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .back-link {
+    position: fixed;
+    top: 14px;
+    left: 16px;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    text-decoration: none;
+    text-transform: uppercase;
+    z-index: 100;
+    transition: color 0.3s;
+  }
+  .back-link:hover { color: var(--accent); }
+
+  .app-badge {
+    position: fixed;
+    top: 14px;
+    right: 16px;
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    z-index: 100;
+  }
+
+  /* ---- SCREENS ---- */
+  .screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100dvh;
+    width: 100%;
+    max-width: 480px;
+    padding: 70px 24px 48px;
+    position: relative;
+    z-index: 10;
+  }
+  .screen.active { display: flex; }
+
+  /* ---- SELECT SCREEN ---- */
+  .wordmark {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(30px, 8vw, 44px);
+    font-weight: 300;
+    letter-spacing: 0.06em;
+    color: var(--text);
+    margin-bottom: 4px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .wordmark em { font-style: italic; color: var(--accent); }
+
+  /* ---- TAB BAR ---- */
+  .tab-bar {
+    display: flex;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 18px 0 20px;
+    flex-shrink: 0;
+  }
+  .tab-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 9px 20px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tab-btn:first-child { border-right: 1px solid var(--border); }
+  .tab-btn.active {
+    background: rgba(40,60,120,0.5);
+    color: var(--accent);
+  }
+  .tab-btn:hover:not(.active) { color: var(--text); }
+
+  /* ---- TAB PANELS ---- */
+  .tab-panel { display: none; width: 100%; flex: 1; flex-direction: column; align-items: center; }
+  .tab-panel.active { display: flex; }
+
+  /* ---- PRACTICE PANEL ---- */
+  .pattern-list {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    width: 100%;
+    margin-bottom: 24px;
+  }
+
+  .pattern-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    cursor: pointer;
+    transition: border-color 0.25s, background 0.25s, transform 0.15s;
+    text-align: left;
+    -webkit-tap-highlight-color: transparent;
+    width: 100%;
+  }
+  .pattern-card:hover, .pattern-card:focus {
+    border-color: rgba(100,130,220,0.4);
+    background: rgba(30,40,90,0.7);
+    outline: none;
+  }
+  .pattern-card:active { transform: scale(0.98); }
+  .pattern-card.selected {
+    border-color: var(--accent);
+    background: rgba(40,60,120,0.5);
+  }
+
+  .pc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+  }
+  .pc-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    font-weight: 400;
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+  .pc-rhythm {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .pc-desc {
+    font-size: 11.5px;
+    line-height: 1.5;
+    color: var(--muted);
+  }
+
+  .rounds-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 22px;
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+  }
+  .rounds-row button {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    color: var(--text);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.2s, background 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .rounds-row button:hover { border-color: var(--accent); background: rgba(30,40,90,0.7); }
+  .rounds-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 300;
+    color: var(--text);
+    min-width: 24px;
+    text-align: center;
+  }
+
+  .btn-begin {
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 13px 44px;
+    border-radius: 40px;
+    cursor: pointer;
+    transition: background 0.3s;
+    -webkit-tap-highlight-color: transparent;
+    flex-shrink: 0;
+  }
+  .btn-begin:hover { background: rgba(100,130,220,0.12); }
+
+  /* ---- CALENDAR PANEL ---- */
+  .cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 16px;
+  }
+  .cal-nav {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.2s, color 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .cal-nav:hover { border-color: var(--accent); color: var(--accent); }
+  .cal-month-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 300;
+    letter-spacing: 0.05em;
+    color: var(--text);
+  }
+
+  .cal-dow {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    width: 100%;
+    margin-bottom: 6px;
+  }
+  .cal-dow span {
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 4px 0;
+  }
+
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    width: 100%;
+    margin-bottom: 24px;
+  }
+
+  .cal-cell {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 13px;
+    color: var(--muted);
+    position: relative;
+    transition: background 0.2s;
+  }
+  .cal-cell.other-month { opacity: 0.25; }
+  .cal-cell.today {
+    color: var(--accent);
+    font-weight: 400;
+    border: 1px solid var(--accent);
+  }
+  .cal-cell.practiced {
+    background: rgba(60,90,200,0.35);
+    border: 1px solid rgba(100,140,240,0.4);
+    color: var(--text);
+  }
+  .cal-cell.practiced.today {
+    background: rgba(80,120,240,0.45);
+    border-color: var(--accent);
+  }
+
+  .cal-streak {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .cal-streak strong {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 300;
+    color: var(--accent);
+  }
+
+  .cal-legend {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    margin-top: 8px;
+  }
+  .cal-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+  .legend-dot.practiced-dot {
+    background: rgba(60,90,200,0.5);
+    border: 1px solid rgba(100,140,240,0.5);
+  }
+  .legend-dot.today-dot {
+    background: transparent;
+    border: 1px solid var(--muted);
+    position: relative;
+  }
+
+  /* ---- BREATHE SCREEN ---- */
+  #screen-breathe {
+    justify-content: space-between;
+    padding-top: 70px;
+    padding-bottom: 36px;
+  }
+
+  .breathe-top { text-align: center; }
+  .breathe-pattern-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 300;
+    letter-spacing: 0.05em;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .breathe-rounds-display {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .orb-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    gap: 32px;
+    padding: 16px 0;
+  }
+
+  .orb-wrap {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .orb-glow {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(100,140,240,0.25) 0%, rgba(40,60,160,0.08) 60%, transparent 75%);
+    transform: scale(1);
+  }
+
+  .orb {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 38% 38%, var(--orb-core) 0%, var(--orb-mid) 45%, var(--orb-outer) 100%);
+    box-shadow:
+      0 0 30px rgba(100,140,240,0.35),
+      0 0 60px rgba(60,90,200,0.2),
+      inset 0 0 20px rgba(200,220,255,0.15);
+    transform: scale(1);
+    will-change: transform;
+  }
+
+  .phase-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-style: italic;
+    font-weight: 300;
+    color: var(--phase-col);
+    letter-spacing: 0.04em;
+    min-height: 38px;
+    text-align: center;
+  }
+
+  .countdown-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 52px;
+    font-weight: 300;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    min-height: 56px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .progress-row {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 0 16px;
+  }
+  .progress-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    border: 1px solid rgba(100,130,220,0.25);
+    transition: background 0.4s;
+  }
+  .progress-dot.done { background: var(--accent); border-color: var(--accent); }
+  .progress-dot.active { background: rgba(100,130,220,0.4); border-color: rgba(140,170,240,0.5); }
+
+  .btn-stop {
+    background: transparent;
+    border: 1px solid rgba(100,130,220,0.2);
+    color: var(--muted);
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 11px 32px;
+    border-radius: 40px;
+    cursor: pointer;
+    transition: border-color 0.3s, color 0.3s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-stop:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ---- DONE SCREEN ---- */
+  #screen-done {
+    justify-content: center;
+    gap: 18px;
+    text-align: center;
+  }
+
+  .done-glyph { font-size: 44px; margin-bottom: 4px; }
+  .done-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 300;
+    letter-spacing: 0.05em;
+    color: var(--text);
+  }
+  .done-sub {
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    line-height: 1.65;
+    max-width: 290px;
+  }
+  .done-streak-note {
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    opacity: 0;
+    transition: opacity 0.6s;
+  }
+  .done-streak-note.show { opacity: 1; }
+
+  .btn-again {
+    margin-top: 8px;
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 13px 40px;
+    border-radius: 40px;
+    cursor: pointer;
+    transition: background 0.3s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-again:hover { background: rgba(100,130,220,0.12); }
+
+  @media (max-width: 375px) {
+    .orb-wrap { width: 170px; height: 170px; }
+    .orb { width: 100px; height: 100px; }
+    .orb-glow { width: 170px; height: 170px; }
+  }
+</style>
+</head>
+<body>
+
+<canvas class="stars" id="stars"></canvas>
+<a href="https://augustineiacopelli.github.io/appaday/" class="back-link">&#8592; AppADay</a>
+<span class="app-badge">042</span>
+
+<!-- SELECT SCREEN -->
+<div class="screen active" id="screen-select">
+  <h1 class="wordmark">Breath<em>Guide</em></h1>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tab-practice" data-panel="panel-practice">Practice</button>
+    <button class="tab-btn" id="tab-calendar" data-panel="panel-calendar">Calendar</button>
+  </div>
+
+  <!-- PRACTICE PANEL -->
+  <div class="tab-panel active" id="panel-practice">
+    <div class="pattern-list" id="pattern-list"></div>
+
+    <div class="rounds-row">
+      <button id="rounds-dec" aria-label="Fewer rounds">&#8722;</button>
+      <span class="rounds-val" id="rounds-val">5</span>
+      <button id="rounds-inc" aria-label="More rounds">&#43;</button>
+      <span>rounds</span>
+    </div>
+
+    <button class="btn-begin" id="btn-begin">Begin</button>
+  </div>
+
+  <!-- CALENDAR PANEL -->
+  <div class="tab-panel" id="panel-calendar">
+    <div class="cal-header">
+      <button class="cal-nav" id="cal-prev">&#8249;</button>
+      <span class="cal-month-label" id="cal-month-label"></span>
+      <button class="cal-nav" id="cal-next">&#8250;</button>
+    </div>
+
+    <div class="cal-dow">
+      <span>Su</span><span>Mo</span><span>Tu</span><span>We</span>
+      <span>Th</span><span>Fr</span><span>Sa</span>
+    </div>
+
+    <div class="cal-grid" id="cal-grid"></div>
+
+    <div class="cal-streak" id="cal-streak"></div>
+
+    <div class="cal-legend">
+      <div class="cal-legend-item">
+        <div class="legend-dot practiced-dot"></div>
+        <span>Practiced</span>
+      </div>
+      <div class="cal-legend-item">
+        <div class="legend-dot today-dot"></div>
+        <span>Today</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BREATHE SCREEN -->
+<div class="screen" id="screen-breathe">
+  <div class="breathe-top">
+    <div class="breathe-pattern-name" id="breathe-pattern-name"></div>
+    <div class="breathe-rounds-display" id="breathe-rounds-display"></div>
+  </div>
+
+  <div class="orb-area">
+    <div class="orb-wrap">
+      <div class="orb-glow" id="orb-glow"></div>
+      <div class="orb" id="orb"></div>
+    </div>
+    <div class="phase-label" id="phase-label">Inhale</div>
+    <div class="countdown-num" id="countdown-num">4</div>
+  </div>
+
+  <div class="progress-row" id="progress-row"></div>
+  <button class="btn-stop" id="btn-stop">Stop</button>
+</div>
+
+<!-- DONE SCREEN -->
+<div class="screen" id="screen-done">
+  <div class="done-glyph">&#9670;</div>
+  <div class="done-title">Well done.</div>
+  <div class="done-sub" id="done-sub">You completed 5 rounds of Box Breathing. Take a moment to notice how you feel.</div>
+  <div class="done-streak-note" id="done-streak-note"></div>
+  <button class="btn-again" id="btn-again">Practice Again</button>
+</div>
+
+<script>
+(function() {
+
+// ---- DATA ----
+var PATTERNS = [
+  {
+    id: 'box',
+    name: 'Box Breathing',
+    rhythm: '4-4-4-4',
+    phases: [
+      { label: 'Inhale',     dur: 4, scale: 1.55 },
+      { label: 'Hold',       dur: 4, scale: 1.55 },
+      { label: 'Exhale',     dur: 4, scale: 1.0  },
+      { label: 'Hold',       dur: 4, scale: 1.0  }
+    ],
+    desc: 'Equal inhale, hold, exhale, hold. Used by Navy SEALs for stress control and nervous system reset.'
+  },
+  {
+    id: '478',
+    name: '4-7-8 Breathing',
+    rhythm: '4-7-8',
+    phases: [
+      { label: 'Inhale',     dur: 4, scale: 1.55 },
+      { label: 'Hold',       dur: 7, scale: 1.55 },
+      { label: 'Exhale',     dur: 8, scale: 1.0  }
+    ],
+    desc: 'Dr. Andrew Weil\u2019s relaxation breath. The extended exhale activates the parasympathetic nervous system.'
+  },
+  {
+    id: 'coherent',
+    name: 'Coherent Breathing',
+    rhythm: '5-5',
+    phases: [
+      { label: 'Inhale',     dur: 5, scale: 1.5  },
+      { label: 'Exhale',     dur: 5, scale: 1.0  }
+    ],
+    desc: 'Five breaths per minute. Maximizes heart rate variability and brings the nervous system into resonance.'
+  },
+  {
+    id: 'wim',
+    name: 'Wim Hof Pattern',
+    rhythm: '2-0-2-1',
+    phases: [
+      { label: 'Inhale',     dur: 2, scale: 1.55 },
+      { label: 'Brief hold', dur: 1, scale: 1.55 },
+      { label: 'Exhale',     dur: 2, scale: 1.0  },
+      { label: 'Rest',       dur: 1, scale: 1.0  }
+    ],
+    desc: 'Energizing cyclic breath. Often practiced in series of 30 to increase oxygen and body heat. One cycle shown here.'
+  },
+  {
+    id: 'diaphragm',
+    name: 'Diaphragmatic',
+    rhythm: '4-0-6',
+    phases: [
+      { label: 'Inhale',     dur: 4, scale: 1.5  },
+      { label: 'Exhale',     dur: 6, scale: 1.0  }
+    ],
+    desc: 'Deep belly breathing with a longer exhale than inhale. The foundation of relaxation and vocal control.'
+  },
+  {
+    id: 'lectio',
+    name: 'Contemplative',
+    rhythm: '3-3-3-3',
+    phases: [
+      { label: 'Receive',    dur: 3, scale: 1.5  },
+      { label: 'Rest',       dur: 3, scale: 1.5  },
+      { label: 'Release',    dur: 3, scale: 1.0  },
+      { label: 'Rest',       dur: 3, scale: 1.0  }
+    ],
+    desc: 'A gentle pattern suited to prayer, lectio divina, and silent sitting. Receive on the inhale, release on the exhale.'
+  }
+];
+
+// ---- STATE ----
+var selectedId = 'box';
+var rounds = 5;
+var timer = null;
+var currentRound = 0;
+var currentPhase = 0;
+var currentSecond = 0;
+var animFrame = null;
+var orbAnimStart = null;
+var orbAnimFrom = 1.0;
+var orbAnimTo = 1.0;
+var orbAnimDur = 0;
+
+// Calendar view state
+var calViewYear = new Date().getFullYear();
+var calViewMonth = new Date().getMonth(); // 0-indexed
+
+// ---- STORAGE HELPERS ----
+var LS_KEY = 'breathguide_practiced_days';
+
+function loadPracticedDays() {
+  try {
+    var raw = localStorage.getItem(LS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch(e) { return {}; }
+}
+
+function savePracticedDays(obj) {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(obj)); } catch(e) {}
+}
+
+function todayKey() {
+  var d = new Date();
+  return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+}
+
+function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+
+function markTodayPracticed(patternName) {
+  var days = loadPracticedDays();
+  var key = todayKey();
+  if (!days[key]) { days[key] = []; }
+  if (days[key].indexOf(patternName) === -1) {
+    days[key].push(patternName);
+  }
+  savePracticedDays(days);
+}
+
+function computeStreak() {
+  var days = loadPracticedDays();
+  var streak = 0;
+  var d = new Date();
+  // Start from today; if today not practiced, start from yesterday
+  var key = d.getFullYear() + '-' + pad2(d.getMonth()+1) + '-' + pad2(d.getDate());
+  if (!days[key]) {
+    d.setDate(d.getDate() - 1);
+  }
+  while (true) {
+    var k = d.getFullYear() + '-' + pad2(d.getMonth()+1) + '-' + pad2(d.getDate());
+    if (days[k]) {
+      streak++;
+      d.setDate(d.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
+// ---- STAR FIELD ----
+(function() {
+  var canvas = document.getElementById('stars');
+  var ctx = canvas.getContext('2d');
+  var stars = [];
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  function mkStars() {
+    stars = [];
+    var n = Math.floor((canvas.width * canvas.height) / 6000);
+    for (var i = 0; i < n; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 1.2 + 0.2,
+        a: Math.random() * 0.6 + 0.1
+      });
+    }
+  }
+  function drawStars() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (var i = 0; i < stars.length; i++) {
+      var s = stars[i];
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(200,210,255,' + s.a + ')';
+      ctx.fill();
+    }
+  }
+  resize(); mkStars(); drawStars();
+  window.addEventListener('resize', function() { resize(); mkStars(); drawStars(); });
+})();
+
+// ---- TAB SWITCHING ----
+document.querySelectorAll('.tab-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var panelId = btn.getAttribute('data-panel');
+    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+    btn.classList.add('active');
+    document.getElementById(panelId).classList.add('active');
+    if (panelId === 'panel-calendar') renderCalendar();
+  });
+});
+
+// ---- BUILD PATTERN LIST ----
+var list = document.getElementById('pattern-list');
+PATTERNS.forEach(function(p) {
+  var card = document.createElement('button');
+  card.className = 'pattern-card' + (p.id === selectedId ? ' selected' : '');
+  card.setAttribute('data-id', p.id);
+  card.innerHTML =
+    '<div class="pc-header">' +
+      '<span class="pc-name">' + p.name + '</span>' +
+      '<span class="pc-rhythm">' + p.rhythm + '</span>' +
+    '</div>' +
+    '<div class="pc-desc">' + p.desc + '</div>';
+  card.addEventListener('click', function() {
+    selectedId = p.id;
+    document.querySelectorAll('.pattern-card').forEach(function(c) { c.classList.remove('selected'); });
+    card.classList.add('selected');
+  });
+  list.appendChild(card);
+});
+
+document.getElementById('rounds-dec').addEventListener('click', function() {
+  if (rounds > 1) { rounds--; document.getElementById('rounds-val').textContent = rounds; }
+});
+document.getElementById('rounds-inc').addEventListener('click', function() {
+  if (rounds < 20) { rounds++; document.getElementById('rounds-val').textContent = rounds; }
+});
+
+document.getElementById('btn-begin').addEventListener('click', startSession);
+document.getElementById('btn-stop').addEventListener('click', stopSession);
+document.getElementById('btn-again').addEventListener('click', function() {
+  showScreen('screen-select');
+});
+
+// ---- CALENDAR ----
+var MONTH_NAMES = ['January','February','March','April','May','June',
+                   'July','August','September','October','November','December'];
+
+document.getElementById('cal-prev').addEventListener('click', function() {
+  calViewMonth--;
+  if (calViewMonth < 0) { calViewMonth = 11; calViewYear--; }
+  renderCalendar();
+});
+document.getElementById('cal-next').addEventListener('click', function() {
+  calViewMonth++;
+  if (calViewMonth > 11) { calViewMonth = 0; calViewYear++; }
+  renderCalendar();
+});
+
+function renderCalendar() {
+  var days = loadPracticedDays();
+  var today = new Date();
+  var todayStr = today.getFullYear() + '-' + pad2(today.getMonth()+1) + '-' + pad2(today.getDate());
+
+  document.getElementById('cal-month-label').textContent =
+    MONTH_NAMES[calViewMonth] + ' ' + calViewYear;
+
+  var grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+
+  var firstDay = new Date(calViewYear, calViewMonth, 1).getDay(); // 0=Sun
+  var daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
+  var daysInPrev = new Date(calViewYear, calViewMonth, 0).getDate();
+
+  // Prev month padding
+  for (var i = 0; i < firstDay; i++) {
+    var cell = document.createElement('div');
+    cell.className = 'cal-cell other-month';
+    cell.textContent = daysInPrev - firstDay + 1 + i;
+    grid.appendChild(cell);
+  }
+
+  // Current month
+  for (var d = 1; d <= daysInMonth; d++) {
+    var cell = document.createElement('div');
+    var key = calViewYear + '-' + pad2(calViewMonth + 1) + '-' + pad2(d);
+    var cls = 'cal-cell';
+    if (key === todayStr) cls += ' today';
+    if (days[key]) cls += ' practiced';
+    cell.className = cls;
+    cell.textContent = d;
+    if (days[key]) {
+      cell.setAttribute('title', days[key].join(', '));
+    }
+    grid.appendChild(cell);
+  }
+
+  // Next month padding to complete grid
+  var totalCells = firstDay + daysInMonth;
+  var remainder = totalCells % 7;
+  var nextPad = remainder === 0 ? 0 : 7 - remainder;
+  for (var n = 1; n <= nextPad; n++) {
+    var cell = document.createElement('div');
+    cell.className = 'cal-cell other-month';
+    cell.textContent = n;
+    grid.appendChild(cell);
+  }
+
+  // Streak
+  var streak = computeStreak();
+  var streakEl = document.getElementById('cal-streak');
+  if (streak === 0) {
+    streakEl.innerHTML = 'No active streak yet. Practice today to begin.';
+  } else {
+    streakEl.innerHTML = '<strong>' + streak + '</strong> day' + (streak === 1 ? '' : 's') + ' in a row';
+  }
+}
+
+// ---- SESSION CONTROL ----
+function getPattern() {
+  for (var i = 0; i < PATTERNS.length; i++) {
+    if (PATTERNS[i].id === selectedId) return PATTERNS[i];
+  }
+  return PATTERNS[0];
+}
+
+function startSession() {
+  var p = getPattern();
+  currentRound = 0;
+  currentPhase = 0;
+  currentSecond = 0;
+  document.getElementById('breathe-pattern-name').textContent = p.name;
+  buildProgressDots();
+  showScreen('screen-breathe');
+  tickPhase();
+}
+
+function buildProgressDots() {
+  var row = document.getElementById('progress-row');
+  row.innerHTML = '';
+  for (var i = 0; i < rounds; i++) {
+    var dot = document.createElement('div');
+    dot.className = 'progress-dot' + (i === 0 ? ' active' : '');
+    dot.id = 'dot-' + i;
+    row.appendChild(dot);
+  }
+  updateRoundsDisplay();
+}
+
+function updateRoundsDisplay() {
+  document.getElementById('breathe-rounds-display').textContent =
+    'Round ' + (currentRound + 1) + ' of ' + rounds;
+}
+
+function tickPhase() {
+  var p = getPattern();
+  var phase = p.phases[currentPhase];
+  document.getElementById('phase-label').textContent = phase.label;
+  currentSecond = phase.dur;
+  document.getElementById('countdown-num').textContent = currentSecond;
+
+  var prevScale = currentPhase === 0 ? p.phases[p.phases.length - 1].scale : p.phases[currentPhase - 1].scale;
+  if (currentPhase === 0 && currentRound === 0) prevScale = 1.0;
+  animateOrb(prevScale, phase.scale, phase.dur * 1000);
+
+  if (timer) clearInterval(timer);
+  timer = setInterval(function() {
+    currentSecond--;
+    if (currentSecond > 0) {
+      document.getElementById('countdown-num').textContent = currentSecond;
+    } else {
+      clearInterval(timer);
+      advancePhase();
+    }
+  }, 1000);
+}
+
+function advancePhase() {
+  var p = getPattern();
+  currentPhase++;
+  if (currentPhase >= p.phases.length) {
+    currentPhase = 0;
+    var dot = document.getElementById('dot-' + currentRound);
+    if (dot) { dot.classList.remove('active'); dot.classList.add('done'); }
+    currentRound++;
+    if (currentRound >= rounds) {
+      endSession();
+      return;
+    }
+    var nextDot = document.getElementById('dot-' + currentRound);
+    if (nextDot) nextDot.classList.add('active');
+    updateRoundsDisplay();
+  }
+  tickPhase();
+}
+
+function stopSession() {
+  if (timer) clearInterval(timer);
+  if (animFrame) cancelAnimationFrame(animFrame);
+  document.getElementById('orb').style.transform = 'scale(1)';
+  document.getElementById('orb-glow').style.transform = 'scale(1)';
+  showScreen('screen-select');
+}
+
+function endSession() {
+  if (animFrame) cancelAnimationFrame(animFrame);
+  document.getElementById('orb').style.transform = 'scale(1)';
+  document.getElementById('orb-glow').style.transform = 'scale(1)';
+
+  var p = getPattern();
+
+  // Record the practice day
+  markTodayPracticed(p.name);
+
+  // Compute streak for the done screen note
+  var streak = computeStreak();
+
+  document.getElementById('done-sub').textContent =
+    'You completed ' + rounds + ' round' + (rounds === 1 ? '' : 's') + ' of ' + p.name + '. Take a moment to notice how you feel.';
+
+  var noteEl = document.getElementById('done-streak-note');
+  if (streak > 1) {
+    noteEl.textContent = streak + '-day streak \u2014 keep going.';
+  } else {
+    noteEl.textContent = 'Day 1 of your streak.';
+  }
+  setTimeout(function() { noteEl.classList.add('show'); }, 400);
+
+  showScreen('screen-done');
+}
+
+// ---- ORB ANIMATION ----
+function animateOrb(fromScale, toScale, durationMs) {
+  if (animFrame) cancelAnimationFrame(animFrame);
+  orbAnimStart = null;
+  orbAnimFrom = fromScale;
+  orbAnimTo = toScale;
+  orbAnimDur = durationMs;
+
+  function step(ts) {
+    if (!orbAnimStart) orbAnimStart = ts;
+    var elapsed = ts - orbAnimStart;
+    var t = Math.min(elapsed / orbAnimDur, 1);
+    var eased = -(Math.cos(Math.PI * t) - 1) / 2;
+    var scale = orbAnimFrom + (orbAnimTo - orbAnimFrom) * eased;
+    document.getElementById('orb').style.transform = 'scale(' + scale + ')';
+    document.getElementById('orb-glow').style.transform = 'scale(' + (scale * 0.9 + 0.1) + ')';
+    if (t < 1) { animFrame = requestAnimationFrame(step); }
+  }
+  animFrame = requestAnimationFrame(step);
+}
+
+// ---- SCREEN SWITCH ----
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  if (id === 'screen-done') {
+    document.getElementById('done-streak-note').classList.remove('show');
+  }
+}
+
+// Init calendar view vars to current month
+calViewYear = new Date().getFullYear();
+calViewMonth = new Date().getMonth();
+
+})();
+</script>
+</body>
+</html>
